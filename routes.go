@@ -33,7 +33,7 @@ var routes = Routes{
 	Route{
 		"Book",
 		"GET",
-		"/book",
+		"/bookings/new",
 		BookCourt,
 	},
 }

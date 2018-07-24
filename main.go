@@ -8,5 +8,5 @@ import (
 func main() {
 	router := NewRouter()
 
-	log.Fatal(http.ListenAndServe(":8082", router))
+	log.Fatal(http.ListenAndServe(":8081", router))
 }
