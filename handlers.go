@@ -1,8 +1,8 @@
 package main
 
 import (
-	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 
@@ -18,7 +18,7 @@ func BookCourt(w http.ResponseWriter, r *http.Request) {
 
 	doc, _ := GetCourtBookingPage(court, hour, min, timeslot)
 
-	ParseCourtBookingPage(doc)
+	token := ParseCourtBookingPage(doc)
 
 	v := url.Values{}
 	v.Set("authenticity_token", token)
@@ -39,6 +39,7 @@ func BookCourt(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	*/
+	fmt.Println(v)
 	fmt.Println("Success")
 }
 
@@ -50,6 +51,7 @@ func GetCourtBookingPage(court string, hour string, min string, timeSlot string)
 		"&timeSlot=" + timeSlot)
 	if err != nil {
 		fmt.Println(err)
+	}
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
@@ -61,25 +63,28 @@ func GetCourtBookingPage(court string, hour string, min string, timeSlot string)
 	return doc, err
 }
 
-func ParseCourtBookingPage(doc goquery.Document) {
+func ParseCourtBookingPage(doc *goquery.Document) (token string) {
 	s := doc.Find("form.booking")
 
 	s.Find("input").Each(func(i int, sel *goquery.Selection) {
 		input, exists := sel.Attr("authenticity_token")
 		if exists {
-			fmt.Println("AT=" + input.Text())
+			fmt.Println("AT=" + input)
+			token = input
 		}
 
-		input, exists := sel.Attr("booking_start_time")
+		input, exists = sel.Attr("booking_start_time")
 		if exists {
-			fmt.Println("start time=" + input.Text())
+			fmt.Println("start time=" + input)
 		}
 
-		input, exists := sel.Attr("booking_days")
+		input, exists = sel.Attr("booking_days")
 		if exists {
-			fmt.Println("days=" + input.Text())
+			fmt.Println("days=" + input)
 		}
 	})
+
+	return token
 }
 
 
