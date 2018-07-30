@@ -18,7 +18,7 @@ func BookCourt(w http.ResponseWriter, r *http.Request) {
 
 	doc, _ := GetCourtBookingPage(court, hour, min, timeslot)
 
-	token := ParseCourtBookingPage(doc)
+	token, days := ParseCourtBookingPage(doc)
 
 	v := url.Values{}
 	v.Set("authenticity_token", token)
@@ -29,7 +29,7 @@ func BookCourt(w http.ResponseWriter, r *http.Request) {
 	v.Add("booking[time_slot_id]", timeslot)
 	v.Add("booking[court_time]", "40")
 	v.Add("booking[court_id]", court)
-	v.Add("booking[days]", "21") // TODO
+	v.Add("booking[days]", days) // TODO
 	v.Add("commit", "Book Court")
 
 	//resp, err := http.PostForm("http://tynemouth-squash.herokuapp.com/bookings", v)
@@ -63,7 +63,7 @@ func GetCourtBookingPage(court string, hour string, min string, timeSlot string)
 	return doc, err
 }
 
-func ParseCourtBookingPage(doc *goquery.Document) (token string) {
+func ParseCourtBookingPage(doc *goquery.Document) (token string, days string) {
 	s := doc.Find("form.booking")
 
 	s.Find("input").Each(func(i int, sel *goquery.Selection) {
@@ -72,6 +72,9 @@ func ParseCourtBookingPage(doc *goquery.Document) (token string) {
 		if (input == "authenticity_token") {
 			token, exists = sel.Attr("value")
 			fmt.Println(token)
+		} else if (input == "booking[days]") {
+			days, _ = sel.Attr("value")
+			fmt.Println("days: " + days)
 		}
 
 		input, exists = sel.Attr("booking_start_time")
@@ -85,7 +88,9 @@ func ParseCourtBookingPage(doc *goquery.Document) (token string) {
 		}
 	})
 
-	return token
+	s.Find("input#booking_days")
+
+	return token, days
 }
 
 
