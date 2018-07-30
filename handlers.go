@@ -67,10 +67,11 @@ func ParseCourtBookingPage(doc *goquery.Document) (token string) {
 	s := doc.Find("form.booking")
 
 	s.Find("input").Each(func(i int, sel *goquery.Selection) {
-		input, exists := sel.Attr("authenticity_token")
-		if exists {
-			fmt.Println("AT=" + input)
-			token = input
+		fmt.Println(sel)
+		input, exists := sel.Attr("name")
+		if (input == "authenticity_token") {
+			token, exists = sel.Attr("value")
+			fmt.Println(token)
 		}
 
 		input, exists = sel.Attr("booking_start_time")
