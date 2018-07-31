@@ -65,14 +65,14 @@ func BookCourt(w http.ResponseWriter, r *http.Request) {
 	req.Header.Set("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6")
 	req.Header.Set("Cache-Control", "max-age=0")
 	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
 	req.Header.Set("Host", "tynemouth-squash.herokuapp.com")
 	req.Header.Set("Origin", "http://tynemouth-squash.herokuapp.com")
 	referer := "http://tynemouth-squash.herokuapp.com/bookings/new?court=" + court + "&days=" + days + "&hour=" + hour + "&min=" + min + "&timeSlot=" + timeslot
 	req.Header.Set("Referer", referer)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.84 Safari/537.36")
 	req.Header.Add("Content-Length", strconv.Itoa(len(v.Encode())))
-	req.Header.Set("Cookie", "_squash_session=OFdlSHcwSkVKZFg2dG94aGR3YWdxVlVuY3pkMFc5Mm5wWFJ5NEdPYWRlTWpVM2VzRHQ3Q05LRDA4NXpQSDJFOTMrZXByYTd5V0ZDWUhhNXBLZ2hCQkVzYVlRRS8vcEtqRTZMMHVPZW9pUlFycmpKQU1HaU5nWDFYRTVBeXh2Z2lTM2JQOE5UbUk2Z3FDZktweE9waklVS3BsMDZpR2dxeEFrU1d3Wi9BQ2Q3WEIxVmZGanU2RjFJRlVFQ2pER3hqLS1xYUxFYVhLSUc5Y3lPYUY2NHhPb3FBPT0%3D--eb7c6608b60eb4d36429c828cee126540147f39c")
+	//req.Header.Set("Cookie", "_squash_session=OFdlSHcwSkVKZFg2dG94aGR3YWdxVlVuY3pkMFc5Mm5wWFJ5NEdPYWRlTWpVM2VzRHQ3Q05LRDA4NXpQSDJFOTMrZXByYTd5V0ZDWUhhNXBLZ2hCQkVzYVlRRS8vcEtqRTZMMHVPZW9pUlFycmpKQU1HaU5nWDFYRTVBeXh2Z2lTM2JQOE5UbUk2Z3FDZktweE9waklVS3BsMDZpR2dxeEFrU1d3Wi9BQ2Q3WEIxVmZGanU2RjFJRlVFQ2pER3hqLS1xYUxFYVhLSUc5Y3lPYUY2NHhPb3FBPT0%3D--eb7c6608b60eb4d36429c828cee126540147f39c")
 	
 	
 	
