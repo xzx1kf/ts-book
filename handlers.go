@@ -7,7 +7,7 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"strings"
-	"io/ioutil"
+	"encoding/json"
 
 	"github.com/PuerkitoBio/goquery"
 	"golang.org/x/net/publicsuffix"
@@ -43,6 +43,7 @@ func BookCourt(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("http.Do() error: %v\n", err)
 		return
 	}
+	defer resp.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	//doc, _ := GetCourtBookingPage(days, court, hour, min, timeslot)
@@ -68,38 +69,29 @@ func BookCourt(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	//req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*.*;q=0.8")
-	//req.Header.Set("Accept-Encoding", "gzip, defalte")
-	//req.Header.Set("Accept-Language", "en-GB,en-US;q=0.8,en;q=0.6")
-	//req.Header.Set("Cache-Control", "max-age=0")
-	//req.Header.Set("Connection", "keep-alive")
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
-	//req.Header.Set("Host", "tynemouth-squash.herokuapp.com")
-	//req.Header.Set("Origin", "http://tynemouth-squash.herokuapp.com")
-	/*referer := "http://tynemouth-squash.herokuapp.com/bookings/new?" +
-		"court=" + court +
-		"&days=" + days +
-		"&hour=" + hour +
-		"&min=" + min +
-		"&timeSlot=" + timeslot
-	req.Header.Set("Referer", referer)*/
-	//req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.84 Safari/537.36")
-	//req.Header.Add("Content-Length", strconv.Itoa(len(v.Encode())))
-
-	fmt.Printf("%v\n", req)
-	fmt.Printf("%v\n", req.URL)
 
 	resp, err = c.Do(req)
 	if err != nil {
 		fmt.Printf("http.Do() error: %v\n", err)
 		return
 	}
-	defer resp.Body.Close()
 
-	fmt.Println(resp.Status)
-	fmt.Println("Success")
-	f, err := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(f))
+	type Booking struct {
+		Time	string
+		Court	string
+	}
+
+	b := Booking{time, court}
+	js, err := json.Marshal(b)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write(js)
 }
 
 func GetCourtBookingPage(days string, court string, hour string, min string, timeSlot string) (*goquery.Document, error) {
