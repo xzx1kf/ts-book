@@ -1,17 +1,22 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"strings"
-	"encoding/json"
 
 	"github.com/PuerkitoBio/goquery"
 	"golang.org/x/net/publicsuffix"
 )
+
+type Booking struct {
+	Time	string
+	Court	string
+}
 
 func BookCourt(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
@@ -21,12 +26,15 @@ func BookCourt(w http.ResponseWriter, r *http.Request) {
 	min := q.Get("min")
 	timeslot := q.Get("timeSlot")
 
+	// create a cookiejar this is required because the website uses cookies
+	// and without it the booking of a court fails. 
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 
 	c := &http.Client{
 		Jar: jar,
 	}
 
+	// Create the get request to retrieve the court booking page.
 	req, err := http.NewRequest("GET", "http://tynemouth-squash.herokuapp.com/bookings/new?" +
 		"court=" + court +
 		"&days=" + days +
@@ -38,6 +46,7 @@ func BookCourt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Perform the get request.
 	resp, err := c.Do(req)
 	if err != nil {
 		fmt.Printf("http.Do() error: %v\n", err)
@@ -45,11 +54,12 @@ func BookCourt(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
+	// Use goquery to parse the court booking page.
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	//doc, _ := GetCourtBookingPage(days, court, hour, min, timeslot)
-
 	token, time := ParseCourtBookingPage(doc)
 
+	// Create the parameters for the POST request utilising the values 
+	// parsed from the booking page.
 	v := url.Values{}
 	v.Set("utf8", "&#x2713;")
 	v.Set("authenticity_token", token)
@@ -64,24 +74,21 @@ func BookCourt(w http.ResponseWriter, r *http.Request) {
 	v.Set("booking[days]", days)
 	v.Set("commit", "Book Court")
 
+	// Create the POST request.
 	req, err = http.NewRequest("POST", "http://tynemouth-squash.herokuapp.com/bookings", strings.NewReader(v.Encode()))
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
 
+	// Perform the POST request
 	resp, err = c.Do(req)
 	if err != nil {
 		fmt.Printf("http.Do() error: %v\n", err)
 		return
 	}
 
-	type Booking struct {
-		Time	string
-		Court	string
-	}
-
+	// Create a JSON response which indicates the time and court booked.
 	b := Booking{time, court}
 	js, err := json.Marshal(b)
 	if err != nil {
@@ -94,40 +101,7 @@ func BookCourt(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func GetCourtBookingPage(days string, court string, hour string, min string, timeSlot string) (*goquery.Document, error) {
-	res, err := http.Get("http://tynemouth-squash.herokuapp.com/bookings/new?" +
-		"court=" + court +
-		"&days=" + days +
-		"&hour=" + hour +
-		"&min=" + min +
-		"&timeSlot=" + timeSlot)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	res.Body.Close()
-
-	return doc, err
-}
-
 func ParseCourtBookingPage(doc *goquery.Document) (token string, time string) {
-	/*
-	* TODO: Change this function to use the below syntax.
-	 *
-	s1 := doc.Find("input#booking_start_time")
-	s2, exist := s1.Attr("value")
-	if exist {
-		fmt.Println("Nick " +  s2)
-	} else {
-		fmt.Println("boo")
-	}
-	*/
-
 	s := doc.Find("form.booking")
 	s.Find("input").Each(func(i int, sel *goquery.Selection) {
 		input, _ := sel.Attr("name")
