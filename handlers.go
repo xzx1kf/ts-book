@@ -2,8 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -11,6 +9,10 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"golang.org/x/net/publicsuffix"
+)
+
+const (
+	tynemouthSquashUrl = "http://tynemouth-squash.herokuapp.com/bookings"
 )
 
 type Booking struct {
@@ -35,21 +37,21 @@ func BookCourt(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create the get request to retrieve the court booking page.
-	req, err := http.NewRequest("GET", "http://tynemouth-squash.herokuapp.com/bookings/new?" +
+	req, err := http.NewRequest("GET", tynemouthSquashUrl + "/new?" +
 		"court=" + court +
 		"&days=" + days +
 		"&hour=" + hour +
 		"&min=" + min +
 		"&timeSlot=" + timeslot, nil)
 	if err != nil {
-		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// Perform the get request.
 	resp, err := c.Do(req)
 	if err != nil {
-		fmt.Printf("http.Do() error: %v\n", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer resp.Body.Close()
@@ -75,16 +77,17 @@ func BookCourt(w http.ResponseWriter, r *http.Request) {
 	v.Set("commit", "Book Court")
 
 	// Create the POST request.
-	req, err = http.NewRequest("POST", "http://tynemouth-squash.herokuapp.com/bookings", strings.NewReader(v.Encode()))
+	req, err = http.NewRequest("POST", tynemouthSquashUrl, strings.NewReader(v.Encode()))
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
 
 	// Perform the POST request
 	resp, err = c.Do(req)
 	if err != nil {
-		fmt.Printf("http.Do() error: %v\n", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
